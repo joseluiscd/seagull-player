@@ -1,0 +1,137 @@
+package io.github.joseluiscd.seagull
+
+import android.app.SearchManager
+import android.content.Context
+import android.database.Cursor
+import android.os.Bundle
+import android.support.design.widget.TabLayout
+import android.support.v4.view.ViewPager
+import android.support.design.widget.NavigationView
+import android.support.v4.view.GravityCompat
+import android.support.v4.widget.DrawerLayout
+import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.SearchView
+import android.support.v7.widget.Toolbar
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import io.github.joseluiscd.seagull.db.Collection
+import io.github.joseluiscd.seagull.model.Track
+import io.github.joseluiscd.seagull.net.BeetsServer
+import io.github.joseluiscd.seagull.util.Callback
+
+import kotlinx.android.synthetic.main.activity_collection.*
+import java.util.*
+
+class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    companion object {
+        val TAG = CollectionActivity::class.qualifiedName
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_collection)
+
+        val toolbar = findViewById(R.id.collection_toolbar) as Toolbar
+        setSupportActionBar(toolbar)
+
+
+        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
+        val toggle = ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer.addDrawerListener(toggle)
+        toggle.syncState()
+
+        val navigationView = findViewById(R.id.nav_view) as NavigationView
+        navigationView.setNavigationItemSelectedListener(this)
+
+        val pa = CollectionPagerAdapter(this, supportFragmentManager)
+
+        collection_pager.adapter = pa
+
+        collection_tabs.setupWithViewPager(collection_pager)
+    }
+
+    override fun onBackPressed() {
+        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.collection, menu)
+        val searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
+
+        searchView.setOnQueryTextListener(object:SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean = if(query != null) onQuery(query) else false
+            override fun onQueryTextChange(newText: String?): Boolean = false
+        })
+
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        val id = item.itemId
+
+
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        // Handle navigation view item clicks here.
+        val id = item.itemId
+
+
+        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
+        drawer.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    fun onQuery(query: String): Boolean {
+        return when(collection_tabs.selectedTabPosition){
+            0 -> { //Artists
+                Log.d(TAG, "Artist query: $query")
+                true
+            }
+            1 -> { //Albums
+                Log.d(TAG, "Albums query: $query")
+                true
+            }
+            2 -> { //Tracks
+                Log.d(TAG, "Tracks query: $query")
+                BeetsServer.getInstance().tracks.queryTracks(query, { tracks ->
+                    if(tracks != null){
+                        showQueryTracks(tracks)
+                    } else {
+                        showQueryTracks(Collection.getInstance().queryTracks(query))
+                    }
+                })
+                true
+            }
+            else -> {
+                false
+            }
+        }
+    }
+
+    fun showQueryTracks(tracks: Array<Track>){
+        Log.d(TAG, Arrays.toString(tracks))
+
+    }
+
+    fun showQueryTracks(tracks: Cursor){
+
+    }
+
+
+
+}

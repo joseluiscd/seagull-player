@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Seagull</string>
+    <string name="action_settings">Settings</string>
+    <string name="welcome">Welcome to the Seagull Music Player. To start using this application, locate your Beets Music Server.</string>
+    <string name="server_url">Host (192.168.0.1)</string>
+
+    <string name="title_activity_collection">My Collection</string>
+    <string name="title_activity_lists">Playlists</string>
+    <string name="title_activity_download">Downloads</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_about">About</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="artists">Artists</string>
+    <string name="albums">Albums</string>
+    <string name="tracks">Tracks</string>
+    <string name="server_port">Port</string>
+    <string name="uses_https">Uses HTTPS</string>
+</resources>

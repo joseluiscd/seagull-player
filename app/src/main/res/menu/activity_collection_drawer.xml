@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/item_collection"
+            android:icon="@drawable/ic_library_music_black_24dp"
+            android:title="@string/title_activity_collection" />
+        <item
+            android:id="@+id/item_playlists"
+            android:icon="@drawable/ic_playlist_play_black_24dp"
+            android:title="@string/title_activity_lists" />
+        <item
+            android:id="@+id/item_downloads"
+            android:icon="@drawable/ic_file_download_black_24dp"
+            android:title="@string/title_activity_download" />
+        <item
+            android:id="@+id/item_settings"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="@string/title_activity_settings" />
+        <item
+            android:id="@+id/item_about"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:title="@string/title_activity_about" />
+    </group>
+
+</menu>
