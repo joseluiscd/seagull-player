@@ -16,6 +16,8 @@ import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import io.github.joseluiscd.seagull.adapters.TrackArrayAdapter
+import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
 import io.github.joseluiscd.seagull.db.Collection
 import io.github.joseluiscd.seagull.model.Track
 import io.github.joseluiscd.seagull.net.BeetsServer
@@ -28,6 +30,8 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
     companion object {
         val TAG = CollectionActivity::class.qualifiedName
     }
+
+    private var pagerAdapter: CollectionPagerAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,9 +50,8 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
         val navigationView = findViewById(R.id.nav_view) as NavigationView
         navigationView.setNavigationItemSelectedListener(this)
 
-        val pa = CollectionPagerAdapter(this, supportFragmentManager)
-
-        collection_pager.adapter = pa
+        pagerAdapter = CollectionPagerAdapter(this, supportFragmentManager)
+        collection_pager.adapter = pagerAdapter
 
         collection_tabs.setupWithViewPager(collection_pager)
     }
@@ -125,11 +128,15 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
 
     fun showQueryTracks(tracks: Array<Track>){
         Log.d(TAG, Arrays.toString(tracks))
+        val frag = pagerAdapter?.tracksFragment ?: return
 
+        frag.adapter = TrackArrayAdapter(tracks)
     }
 
     fun showQueryTracks(tracks: Cursor){
+        val frag = pagerAdapter?.tracksFragment ?: return
 
+        frag.adapter = TrackCursorAdapter(this, tracks)
     }
 
 
