@@ -19,7 +19,7 @@ import io.github.joseluiscd.seagull.model.Track
  */
 
 class CollectionPagerAdapter(c: Context, fragmentManager: FragmentManager)
-    : FragmentPagerAdapter(fragmentManager), TrackListener {
+    : FragmentPagerAdapter(fragmentManager){
 
     val context: Context = c.applicationContext
 
@@ -27,11 +27,6 @@ class CollectionPagerAdapter(c: Context, fragmentManager: FragmentManager)
     val tracksFragment: TracksFragment = TracksFragment()
     val artistsFragment: Fragment = Fragment()
 
-    init {
-        Collection.getInstance().addTrackListener(this)
-
-        tracksFragment.adapter = TrackArrayAdapter()
-    }
 
     override fun getItem(position: Int): Fragment = when(position){
         0 -> artistsFragment
@@ -50,6 +45,4 @@ class CollectionPagerAdapter(c: Context, fragmentManager: FragmentManager)
         2 -> "Tracks"
         else -> "Troll-Tab"
     }
-
-    override fun onTrackListChanged() {}
 }

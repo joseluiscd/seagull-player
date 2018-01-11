@@ -26,7 +26,12 @@ import io.github.joseluiscd.seagull.util.Callback
 import kotlinx.android.synthetic.main.activity_collection.*
 import java.util.*
 
-class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class CollectionActivity :
+        AppCompatActivity(),
+        NavigationView.OnNavigationItemSelectedListener,
+        TracksFragment.OnListFragmentInteractionListener {
+
+
     companion object {
         val TAG = CollectionActivity::class.qualifiedName
     }
@@ -54,6 +59,8 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
         collection_pager.adapter = pagerAdapter
 
         collection_tabs.setupWithViewPager(collection_pager)
+
+        loadDefaultViews()
     }
 
     override fun onBackPressed() {
@@ -74,6 +81,11 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
             override fun onQueryTextSubmit(query: String?): Boolean = if(query != null) onQuery(query) else false
             override fun onQueryTextChange(newText: String?): Boolean = false
         })
+
+        searchView.setOnCloseListener {
+            loadDefaultViews()
+            false
+        }
 
         return true
     }
@@ -97,6 +109,24 @@ class CollectionActivity : AppCompatActivity(), NavigationView.OnNavigationItemS
         val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
         drawer.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    override fun onTrackClicked(item: Track?) {
+        Log.d(TAG, "Clicked song: $item")
+
+    }
+
+    override fun onTrackLongClicked(item: Track?) {
+        Log.d(TAG, "LongClicked song: $item")
+    }
+
+    fun loadDefaultViews(){
+        val fragTracks = pagerAdapter?.tracksFragment ?: return
+        /*val fragAlbums = pagerAdapter?.albumsFragment ?: return
+        val fragArtists = pagerAdapter?.artistsFragment ?: return*/
+
+        fragTracks.adapter = TrackCursorAdapter(this, Collection.getInstance().allTracks)
+
     }
 
     fun onQuery(query: String): Boolean {

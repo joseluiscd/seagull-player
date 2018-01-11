@@ -69,6 +69,8 @@ public class TracksFragment extends Fragment {
 
         recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), LinearLayoutManager.VERTICAL));
 
+        recyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener());
+
         return recyclerView;
     }
 
@@ -99,6 +101,7 @@ public class TracksFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(Track item);
+        void onTrackClicked(Track item);
+        void onTrackLongClicked(Track item);
     }
 }

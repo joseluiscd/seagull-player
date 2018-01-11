@@ -29,6 +29,11 @@ public class TrackViewHolder extends RecyclerView.ViewHolder {
     }
 
     @Override
+    public void onClick(){
+
+    }
+
+    @Override
     public String toString() {
         return super.toString();
     }
