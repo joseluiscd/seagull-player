@@ -49,7 +49,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
         if(prefs.getString(AppPreferences.SERVER_URL, null) != null){
             serverUrl = prefs.getString(AppPreferences.SERVER_URL, null);
-            updateCollection();
             goToCollection();
         }
 
@@ -102,7 +101,6 @@ public class WelcomeActivity extends AppCompatActivity {
                     editPrefs.putString(AppPreferences.SERVER_URL, serverUrl);
                     editPrefs.commit();
 
-                    updateCollection();
                     goToCollection();
 
                 } else {
@@ -141,23 +139,10 @@ public class WelcomeActivity extends AppCompatActivity {
 
     void goToCollection(){
         Intent t = new Intent(WelcomeActivity.this, CollectionActivity.class);
+        BeetsServer.getInstance(appContext, serverUrl);
+        t.putExtra(CollectionActivity.ARG_INIT_SERVER, true);
+
         WelcomeActivity.this.startActivity(t);
-    }
-
-    void updateCollection(){
-        BeetsServer serv = BeetsServer.getInstance(appContext, serverUrl);
-
-        //TODO: Cambiar esto
-        serv.tracks.getAll(new Callback<Track[]>() {
-            @Override
-            public void call(Track[] tracks) {
-                Collection c = Collection.getInstance();
-                if(tracks == null){
-                    Toast.makeText(appContext, "Trololo, songs not found", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
     }
 
 

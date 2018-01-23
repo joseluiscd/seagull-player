@@ -8,12 +8,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import io.github.joseluiscd.seagull.model.Track
 import kotlinx.android.synthetic.main.fragment_track_context_menu.*
-import kotlinx.android.synthetic.main.context_menu_item.view.*
 
-// TODO: Customize parameter argument names
-const val ARG_ITEM_COUNT = "item_count"
 
 /**
  *
@@ -35,17 +34,29 @@ class TrackContextMenuFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        list.layoutManager = LinearLayoutManager(context)
-        list.adapter = ContextMenuItemAdapter(arguments.getInt(ARG_ITEM_COUNT))
+        super.onViewCreated(view, savedInstanceState)
+        val vgroup = view as ViewGroup
+        for(i in (0 until vgroup.childCount)){
+            val child = vgroup.getChildAt(i)
+
+            child.setOnClickListener {
+                callClickListener(child.id)
+            }
+        }
+
+    }
+
+    fun callClickListener(id: Int){
+        mListener?.onContextMenuItemClicked(id)
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         val parent = parentFragment
         if (parent != null) {
-            mListener = parent as Listener
+            mListener = parent as? Listener
         } else {
-            mListener = context as Listener
+            mListener = context as? Listener
         }
     }
 
@@ -55,46 +66,17 @@ class TrackContextMenuFragment : BottomSheetDialogFragment() {
     }
 
     interface Listener {
-        fun onContextMenuItemClicked(position: Int)
-    }
-
-    private inner class ViewHolder internal constructor(inflater: LayoutInflater, parent: ViewGroup)
-        : RecyclerView.ViewHolder(inflater.inflate(R.layout.context_menu_item, parent, false)) {
-
-        internal val text: TextView = itemView.text
-
-        init {
-            text.setOnClickListener {
-                mListener?.let {
-                    it.onContextMenuItemClicked(adapterPosition)
-                    dismiss()
-                }
-            }
-        }
-    }
-
-    private inner class ContextMenuItemAdapter internal constructor(private val mItemCount: Int) : RecyclerView.Adapter<ViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            return ViewHolder(LayoutInflater.from(parent.context), parent)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.text.text = position.toString()
-        }
-
-        override fun getItemCount(): Int {
-            return mItemCount
-        }
+        fun onContextMenuItemClicked(id: Int)
     }
 
     companion object {
+        const val ARG_TRACK = "item_count"
 
         // TODO: Customize parameters
-        fun newInstance(itemCount: Int): TrackContextMenuFragment =
+        fun newInstance(track: Track): TrackContextMenuFragment =
                 TrackContextMenuFragment().apply {
                     arguments = Bundle().apply {
-                        putInt(ARG_ITEM_COUNT, itemCount)
+                        putSerializable(ARG_TRACK, track)
                     }
                 }
 

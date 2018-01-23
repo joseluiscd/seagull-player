@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
+
 import io.github.joseluiscd.seagull.R;
 import io.github.joseluiscd.seagull.db.Collection;
 import io.github.joseluiscd.seagull.db.DatabaseItem;
@@ -17,7 +19,7 @@ import io.github.joseluiscd.seagull.db.DatabaseItem;
  * Created by joseluis on 2/12/17.
  */
 
-public class Track implements DatabaseItem{
+public class Track implements DatabaseItem, Serializable{
     private int id;
     private int album_id = -1;
     private int year = 0;

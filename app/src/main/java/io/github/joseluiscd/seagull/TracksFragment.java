@@ -7,10 +7,16 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
+import io.github.joseluiscd.seagull.adapters.Adapter;
+import io.github.joseluiscd.seagull.adapters.ClickListener;
+import io.github.joseluiscd.seagull.adapters.TrackViewHolder;
 import io.github.joseluiscd.seagull.model.Track;
 
 /**
@@ -19,12 +25,12 @@ import io.github.joseluiscd.seagull.model.Track;
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class TracksFragment extends Fragment {
+public class TracksFragment extends Fragment implements ClickListener, TrackContextMenuFragment.Listener {
 
     private OnListFragmentInteractionListener mListener;
 
-    private RecyclerView.Adapter adapter;
-    private RecyclerView recyclerView;
+    private Adapter<TrackViewHolder, Track> adapter;
+    public RecyclerView recyclerView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -33,14 +39,17 @@ public class TracksFragment extends Fragment {
     public TracksFragment() {
     }
 
-    public void setAdapter(RecyclerView.Adapter a){
+    public void setAdapter(Adapter<TrackViewHolder, Track> a){
+        a.setClickListener(this);
+
         this.adapter = a;
         if(recyclerView != null){
             recyclerView.setAdapter(a);
         }
     }
 
-    public RecyclerView.Adapter getAdapter(){
+
+    public Adapter<TrackViewHolder, Track> getAdapter(){
         return adapter;
     }
 
@@ -87,6 +96,28 @@ public class TracksFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onClick(@NotNull View view, int position) {
+        Log.d("MIAU", "troll");
+    }
+
+    @Override
+    public void onLongClick(@NotNull View view, int position) {
+        Log.d("Troll", "Miau-click");
+        Track t = adapter.getItemAt(position);
+        TrackContextMenuFragment f = new TrackContextMenuFragment();
+        Bundle b = new Bundle();
+        b.putSerializable(TrackContextMenuFragment.ARG_TRACK, t);
+        f.setArguments(b);
+
+        f.show(getChildFragmentManager(), "Miau_tag");
+    }
+
+    @Override
+    public void onContextMenuItemClicked(int position) {
+        Log.d("Clicked", Integer.toString(position));
     }
 
     /**

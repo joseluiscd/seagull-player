@@ -69,7 +69,7 @@ public class Collection {
 
     public Cursor queryTracks(String query){
         SQLiteDatabase db = helper.getReadableDatabase();
-        return db.query(TRACK_TABLE, null, "title LIKE '%?%'", new String[]{query}, null, null, "title");
+        return db.query(TRACK_TABLE, null, "title LIKE ?", new String[]{query}, null, null, "title");
     }
 
     public Cursor getEmptyTracksCursor(){

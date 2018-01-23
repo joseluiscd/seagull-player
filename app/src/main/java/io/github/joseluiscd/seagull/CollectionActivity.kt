@@ -4,6 +4,7 @@ import android.app.SearchManager
 import android.content.Context
 import android.database.Cursor
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.design.widget.TabLayout
 import android.support.v4.view.ViewPager
 import android.support.design.widget.NavigationView
@@ -11,14 +12,18 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import io.github.joseluiscd.seagull.adapters.ClickListener
 import io.github.joseluiscd.seagull.adapters.TrackArrayAdapter
 import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
 import io.github.joseluiscd.seagull.db.Collection
+import io.github.joseluiscd.seagull.model.AppPreferences
 import io.github.joseluiscd.seagull.model.Track
 import io.github.joseluiscd.seagull.net.BeetsServer
 import io.github.joseluiscd.seagull.util.Callback
@@ -29,11 +34,19 @@ import java.util.*
 class CollectionActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener,
-        TracksFragment.OnListFragmentInteractionListener {
+        TracksFragment.OnListFragmentInteractionListener
+{
 
 
     companion object {
         val TAG = CollectionActivity::class.qualifiedName
+        const val ARG_INIT_SERVER: String = "server_was_initialized_y_eso"
+
+        init{
+
+            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        }
     }
 
     private var pagerAdapter: CollectionPagerAdapter? = null
@@ -41,6 +54,15 @@ class CollectionActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_collection)
+
+        if(intent.getBooleanExtra(ARG_INIT_SERVER, false)){
+            val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
+            if (prefs.getString(AppPreferences.SERVER_URL, null) != null) {
+                val serverUrl = prefs.getString(AppPreferences.SERVER_URL, null)
+                BeetsServer.getInstance(applicationContext, serverUrl)
+            }
+        }
 
         val toolbar = findViewById(R.id.collection_toolbar) as Toolbar
         setSupportActionBar(toolbar)
@@ -61,6 +83,7 @@ class CollectionActivity :
         collection_tabs.setupWithViewPager(collection_pager)
 
         loadDefaultViews()
+
     }
 
     override fun onBackPressed() {
@@ -78,7 +101,10 @@ class CollectionActivity :
         val searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
 
         searchView.setOnQueryTextListener(object:SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean = if(query != null) onQuery(query) else false
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                searchView.clearFocus()
+                return if(query != null) onQuery(query) else false
+            }
             override fun onQueryTextChange(newText: String?): Boolean = false
         })
 
@@ -112,18 +138,17 @@ class CollectionActivity :
     }
 
     override fun onTrackClicked(item: Track?) {
-        Log.d(TAG, "Clicked song: $item")
-
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onTrackLongClicked(item: Track?) {
-        Log.d(TAG, "LongClicked song: $item")
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     fun loadDefaultViews(){
         val fragTracks = pagerAdapter?.tracksFragment ?: return
-        /*val fragAlbums = pagerAdapter?.albumsFragment ?: return
-        val fragArtists = pagerAdapter?.artistsFragment ?: return*/
+        val fragAlbums = pagerAdapter?.albumsFragment ?: return
+        val fragArtists = pagerAdapter?.artistsFragment ?: return
 
         fragTracks.adapter = TrackCursorAdapter(this, Collection.getInstance().allTracks)
 
