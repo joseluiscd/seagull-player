@@ -1,13 +1,26 @@
 package io.github.joseluiscd.seagull
 
+import android.app.Service
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.support.v4.app.Fragment
+import android.support.v4.widget.NestedScrollView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import io.github.joseluiscd.seagull.adapters.TrackQueueAdapter
+import io.github.joseluiscd.seagull.media.Player
+import io.github.joseluiscd.seagull.media.Queue
+import io.github.joseluiscd.seagull.model.Track
+import kotlinx.android.synthetic.main.fragment_media_control.*
 
 /**
  * A simple [Fragment] subclass.
@@ -17,28 +30,60 @@ import android.view.ViewGroup
  * Use the [MediaControlFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class MediaControlFragment : Fragment() {
+class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceConnection,
+        TracksFragment.OnListFragmentInteractionListener, Player.OnTrackPlayedListener {
 
-    // TODO: Rename and change types of parameters
-    private var mParam1: String? = null
-    private var mParam2: String? = null
+    lateinit var queueFragment: TracksFragment
+    lateinit var button: ImageButton
+
+    var player: Player? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments.getString(ARG_PARAM1)
-            mParam2 = arguments.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        return inflater!!.inflate(R.layout.fragment_media_control, container, false)
+        val view = inflater!!.inflate(R.layout.fragment_media_control, container, false)
+
+        button = view.findViewById(R.id.play_button)
+        button.setOnClickListener{ onPlayPressed() }
+
+        return view
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
+    override fun onStart() {
+        super.onStart()
+        queueFragment = this.childFragmentManager.findFragmentById(R.id.queue_list) as TracksFragment
+        context.bindService(Intent(context, Player::class.java), this, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if(player != null){
+            context.unbindService(this)
+        }
+    }
+
+    override fun queueChanged(q: Queue) {
+        queueFragment?.adapter = TrackQueueAdapter(q)
+    }
+
+    override fun onTrackPlayed(t: Track) {
+        current_track_title.text = t.title
+        current_track_artist.text = t.artist
+    }
+
+    fun onPlayPressed() {
+        val pl = player ?: return
+        if(pl.player.isPlaying && pl.has_something){
+            pl.pause()
+            button.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+        } else {
+            pl.play()
+            button.setImageResource(R.drawable.ic_pause_black_24dp)
+        }
 
     }
 
@@ -51,6 +96,25 @@ class MediaControlFragment : Fragment() {
         super.onDetach()
     }
 
+    override fun onTrackClicked(item: Track?) {
+
+    }
+
+    override fun onTrackLongClicked(item: Track?) {
+
+    }
+
+    override fun onServiceDisconnected(name: ComponentName?) {
+        player?.queue?.removeChangeListener(this)
+        player?.onTrackPlayerListener = null
+        player = null
+    }
+
+    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+        player = (service as Player.PlayerBinder).service
+        player?.queue?.addChangeListener(this)
+        player?.onTrackPlayerListener = this
+    }
 
     companion object {
         // TODO: Rename parameter arguments, choose names that match
@@ -67,13 +131,7 @@ class MediaControlFragment : Fragment() {
          * @return A new instance of fragment MediaControlFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String, param2: String): MediaControlFragment {
-            val fragment = MediaControlFragment()
-            val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
-            fragment.arguments = args
-            return fragment
-        }
+        fun newInstance(): MediaControlFragment = MediaControlFragment()
+
     }
 }// Required empty public constructor

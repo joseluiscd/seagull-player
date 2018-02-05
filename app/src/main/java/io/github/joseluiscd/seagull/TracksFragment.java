@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import io.github.joseluiscd.seagull.adapters.Adapter;
 import io.github.joseluiscd.seagull.adapters.ClickListener;
 import io.github.joseluiscd.seagull.adapters.TrackViewHolder;
+import io.github.joseluiscd.seagull.media.Player;
 import io.github.joseluiscd.seagull.model.Track;
 
 /**
@@ -47,7 +48,6 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
             recyclerView.setAdapter(a);
         }
     }
-
 
     public Adapter<TrackViewHolder, Track> getAdapter(){
         return adapter;
@@ -87,7 +87,9 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
+        if(getParentFragment() != null){
+            mListener = (OnListFragmentInteractionListener) getParentFragment();
+        } if (context instanceof OnListFragmentInteractionListener) {
             mListener = (OnListFragmentInteractionListener) context;
         }
     }
@@ -98,9 +100,10 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
         mListener = null;
     }
 
+
     @Override
     public void onClick(@NotNull View view, int position) {
-        Log.d("MIAU", "troll");
+        mListener.onTrackClicked(adapter.getItemAt(position));
     }
 
     @Override

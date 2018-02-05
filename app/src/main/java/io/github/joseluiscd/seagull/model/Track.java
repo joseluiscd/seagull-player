@@ -10,10 +10,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import io.github.joseluiscd.seagull.R;
 import io.github.joseluiscd.seagull.db.Collection;
 import io.github.joseluiscd.seagull.db.DatabaseItem;
+import io.github.joseluiscd.seagull.net.BeetsServer;
 
 /**
  * Created by joseluis on 2/12/17.
@@ -97,5 +100,9 @@ public class Track implements DatabaseItem, Serializable{
 
     public void setArtist(String artist) {
         this.artist = artist;
+    }
+
+    public String getUrl(){
+        return BeetsServer.getInstance().getUrlWithPath("/item/"+id+"/file", false);
     }
 }

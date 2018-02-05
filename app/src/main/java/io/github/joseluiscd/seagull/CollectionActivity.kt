@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.provider.MediaStore
 import android.support.design.widget.TabLayout
 import android.support.v4.view.ViewPager
 import android.support.design.widget.NavigationView
@@ -51,6 +52,8 @@ class CollectionActivity :
 
     private var pagerAdapter: CollectionPagerAdapter? = null
 
+    lateinit var mediaControlFragment: MediaControlFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_collection)
@@ -84,6 +87,11 @@ class CollectionActivity :
 
         loadDefaultViews()
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mediaControlFragment = supportFragmentManager.findFragmentByTag("media_control") as MediaControlFragment
     }
 
     override fun onBackPressed() {
@@ -138,11 +146,12 @@ class CollectionActivity :
     }
 
     override fun onTrackClicked(item: Track?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.d("miau", item.toString())
+        Log.d("miau", mediaControlFragment.player.toString())
+        if(item != null) mediaControlFragment.player?.queue?.queueTrack(item)
     }
 
     override fun onTrackLongClicked(item: Track?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     fun loadDefaultViews(){

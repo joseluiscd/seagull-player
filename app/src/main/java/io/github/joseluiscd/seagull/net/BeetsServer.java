@@ -58,7 +58,11 @@ public class BeetsServer {
     }
 
     public String getUrlWithPath(String path){
-        if(!path.endsWith("/")){
+        return getUrlWithPath(path, true);
+    }
+
+    public String getUrlWithPath(String path, boolean finalSlash){
+        if(!path.endsWith("/") && finalSlash){
             path = path + "/";
         }
 

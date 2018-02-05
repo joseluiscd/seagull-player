@@ -1,36 +1,81 @@
-<android.support.v4.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@color/colorPrimaryDark"
-    tools:context="io.github.joseluiscd.seagull.MediaControlFragment">
+    android:orientation="vertical">
 
-    <android.support.v7.widget.LinearLayoutCompat
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:orientation="horizontal"
+        android:layout_height="wrap_content"
         android:background="@color/colorPrimary">
 
         <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_weight="0"
-            android:src="@drawable/lp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:text="TextView" />
+            android:id="@+id/imageView5"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:src="@drawable/lp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_weight="0"
+            android:id="@+id/play_button"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
-    </android.support.v7.widget.LinearLayoutCompat>
 
-</android.support.v4.widget.NestedScrollView>
+        <TextView
+            android:id="@+id/current_track_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:text="TextView"
+            app:layout_constraintEnd_toStartOf="@+id/play_button"
+            app:layout_constraintStart_toEndOf="@+id/imageView5"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/current_track_artist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:clickable="false"
+            android:text="TextView"
+            app:layout_constraintEnd_toStartOf="@+id/play_button"
+            app:layout_constraintStart_toEndOf="@+id/imageView5"
+            app:layout_constraintTop_toBottomOf="@+id/current_track_title" />
+
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/current_track_artist" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <fragment
+        android:id="@+id/queue_list"
+        android:name="io.github.joseluiscd.seagull.TracksFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/fragment_track_list" />
+
+</android.support.v7.widget.LinearLayoutCompat>
