@@ -27,8 +27,8 @@ https://stackoverflow.com/questions/32523188/coordinatorlayout-appbarlayout-navi
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/appbar_padding_top"
             app:elevation="@dimen/design_appbar_elevation"
+            android:theme="@style/AppTheme.AppBarOverlay"
             >
-            <!--android:theme="@style/AppTheme.AppBarOverlay"-->
 
             <android.support.v7.widget.Toolbar
                 app:layout_scrollFlags="scroll|enterAlways"
@@ -58,13 +58,7 @@ https://stackoverflow.com/questions/32523188/coordinatorlayout-appbarlayout-navi
     </android.support.design.widget.CoordinatorLayout>
 
 
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header_collection"
-        app:menu="@menu/activity_collection_drawer" />
+    <include layout="@layout/nav_view"/>
 
 
 </android.support.v4.widget.DrawerLayout>

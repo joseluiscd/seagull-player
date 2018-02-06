@@ -2,19 +2,19 @@ package io.github.joseluiscd.seagull.media
 
 import android.app.Service
 import android.content.Intent
-import android.media.AsyncPlayer
 import android.media.MediaPlayer
 import android.os.Binder
-import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserServiceCompat
 import io.github.joseluiscd.seagull.model.Track
+import io.github.joseluiscd.seagull.net.BeetsServer
 
 /**
  * Created by joseluis on 4/02/18.
  */
-class Player: Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener{
+class Player()
+    : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener{
+
     companion object {
         const val ARG_URL: String = "Miau"
     }
@@ -26,28 +26,51 @@ class Player: Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletio
 
     val queue = Queue()
     val player = MediaPlayer()
+    lateinit var beets: BeetsServer
+    lateinit var theHandler: Handler
+
+    var isPlaying: Boolean = false
+        private set
 
     var onTrackPlayerListener: OnTrackPlayedListener? = null
+    var onTrackUpdateListener: OnTrackUpdateListener? = null
 
-    var has_something = false
+    var playingSomething = false
+        private set
+
 
     override fun onBind(intent: Intent?): IBinder? = PlayerBinder()
 
     fun pause(){
         player.pause()
+        isPlaying = false
     }
 
     fun play(){
-        if(has_something){
+        if(playingSomething){
             player.start()
         } else {
-            has_something = true
+            playingSomething = true
             prepareNext()
         }
+
+        val r: Runnable = object : Runnable {
+            override fun run() {
+                if(player.isPlaying){
+                    val t = player.currentPosition.toFloat()/ player.duration.toFloat()
+                    onTrackUpdateListener?.trackUpdated(t)
+                    theHandler.postDelayed(this, 1000)
+                }
+            }
+
+        }
+        theHandler.postDelayed(r, 1000)
+
     }
 
     fun next(){
         player.stop()
+        player.reset()
         prepareNext()
     }
 
@@ -55,7 +78,7 @@ class Player: Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletio
         val t = queue.popNext()
         if(t != null){
             onTrackPlayerListener?.onTrackPlayed(t)
-            player.setDataSource(t.url)
+            player.setDataSource(t.url(beets))
             player.prepareAsync()
         }
     }
@@ -64,19 +87,27 @@ class Player: Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletio
         super.onCreate()
         player.setOnPreparedListener(this)
         player.setOnCompletionListener(this)
+        beets = BeetsServer(applicationContext)
+        theHandler = Handler()
     }
 
     override fun onPrepared(mp: MediaPlayer) {
         play()
+        isPlaying = true
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
+        isPlaying = false
         player.reset()
         prepareNext()
     }
 
     interface OnTrackPlayedListener {
         fun onTrackPlayed(t: Track)
+    }
+
+    interface OnTrackUpdateListener {
+        fun trackUpdated(percent: Float)
     }
 
 }

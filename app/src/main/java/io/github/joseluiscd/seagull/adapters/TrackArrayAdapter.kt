@@ -1,9 +1,9 @@
 package io.github.joseluiscd.seagull.adapters
 
-import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import com.squareup.picasso.Picasso
 import io.github.joseluiscd.seagull.R
 import io.github.joseluiscd.seagull.model.Track
 
@@ -24,14 +24,12 @@ class TrackArrayAdapter(var tracks: Array<Track>? = null)
 
     override fun onBindViewHolder(viewHolder: TrackViewHolder, position: Int) {
         val t = tracks?.get(position)
-        viewHolder.title.text = t?.title
-        viewHolder.artist.text = t?.artist
-        viewHolder.album.text = t?.album
+        if(t != null) viewHolder.fillTrack(t)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): TrackViewHolder {
         val itemView = LayoutInflater.from(parent?.context).inflate(R.layout.track_view, parent, false)
-        return TrackViewHolder(itemView, clickListener)
+        return TrackViewHolder(itemView, clickListener, menuListener)
     }
 
 }

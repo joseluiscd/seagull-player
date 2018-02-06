@@ -11,7 +11,6 @@ import java.util.ArrayList
 
 import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
 import io.github.joseluiscd.seagull.db.Collection
-import io.github.joseluiscd.seagull.db.TrackListener
 import io.github.joseluiscd.seagull.model.Track
 
 /**
@@ -24,7 +23,7 @@ class CollectionPagerAdapter(c: Context, fragmentManager: FragmentManager)
     val context: Context = c.applicationContext
 
     val albumsFragment: Fragment = Fragment()
-    val tracksFragment: TracksFragment = TracksFragment()
+    val tracksFragment: TracksFragment = TracksFragment.newInstance(true)
     val artistsFragment: Fragment = Fragment()
 
 

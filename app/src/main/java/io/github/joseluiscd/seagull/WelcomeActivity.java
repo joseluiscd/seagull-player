@@ -44,11 +44,8 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         appContext = getApplicationContext();
-        Collection.setContext(appContext);
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(appContext);
 
-        if(prefs.getString(AppPreferences.SERVER_URL, null) != null){
-            serverUrl = prefs.getString(AppPreferences.SERVER_URL, null);
+        if((serverUrl = BeetsServer.getServerURL(appContext)) != null){
             goToCollection();
         }
 
@@ -97,10 +94,7 @@ public class WelcomeActivity extends AppCompatActivity {
             @Override
             public void call(Boolean online) {
                 if(online){
-                    SharedPreferences.Editor editPrefs = prefs.edit();
-                    editPrefs.putString(AppPreferences.SERVER_URL, serverUrl);
-                    editPrefs.commit();
-
+                    BeetsServer.setServerURL(appContext, serverUrl);
                     goToCollection();
 
                 } else {
@@ -139,7 +133,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
     void goToCollection(){
         Intent t = new Intent(WelcomeActivity.this, CollectionActivity.class);
-        BeetsServer.getInstance(appContext, serverUrl);
         t.putExtra(CollectionActivity.ARG_INIT_SERVER, true);
 
         WelcomeActivity.this.startActivity(t);

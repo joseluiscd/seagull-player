@@ -1,21 +1,18 @@
 package io.github.joseluiscd.seagull
 
-import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.app.Fragment
-import android.support.v4.widget.NestedScrollView
 import android.util.Log
+import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.LinearLayout
+import com.squareup.picasso.Picasso
 import io.github.joseluiscd.seagull.adapters.TrackQueueAdapter
 import io.github.joseluiscd.seagull.media.Player
 import io.github.joseluiscd.seagull.media.Queue
@@ -31,10 +28,10 @@ import kotlinx.android.synthetic.main.fragment_media_control.*
  * create an instance of this fragment.
  */
 class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceConnection,
-        TracksFragment.OnListFragmentInteractionListener, Player.OnTrackPlayedListener {
+        TracksFragment.OnListFragmentInteractionListener, Player.OnTrackPlayedListener,
+        Player.OnTrackUpdateListener {
 
     lateinit var queueFragment: TracksFragment
-    lateinit var button: ImageButton
 
     var player: Player? = null
 
@@ -45,17 +42,26 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val view = inflater!!.inflate(R.layout.fragment_media_control, container, false)
+        return inflater!!.inflate(R.layout.fragment_media_control, container, false)
 
-        button = view.findViewById(R.id.play_button)
-        button.setOnClickListener{ onPlayPressed() }
+    }
 
-        return view
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        queueFragment = childFragmentManager.findFragmentByTag("media_control") as TracksFragment
+
+        play_button.setOnClickListener{ onPlayPressed() }
+        skip_next.setOnClickListener{
+            player?.next()
+        }
+
+        clear_all.setOnClickListener{
+            player?.queue?.clear()
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        queueFragment = this.childFragmentManager.findFragmentById(R.id.queue_list) as TracksFragment
         context.bindService(Intent(context, Player::class.java), this, Context.BIND_AUTO_CREATE)
     }
 
@@ -71,20 +77,28 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
     }
 
     override fun onTrackPlayed(t: Track) {
+        play_button.setImageResource(R.drawable.ic_pause_black_24dp)
         current_track_title.text = t.title
         current_track_artist.text = t.artist
+        Picasso.with(context.applicationContext)
+                .load(t.albumArtURL)
+                .placeholder(R.drawable.lp)
+                .into(current_track_art)
+    }
+
+    override fun trackUpdated(percent: Float) {
+        progressBar2.progress = (percent * 100).toInt()
+        Log.d("Miau",(percent * 100).toString())
     }
 
     fun onPlayPressed() {
         val pl = player ?: return
-        if(pl.player.isPlaying && pl.has_something){
+        if(pl.isPlaying && pl.playingSomething){
             pl.pause()
-            button.setImageResource(R.drawable.ic_play_arrow_black_24dp)
+            play_button.setImageResource(R.drawable.ic_play_arrow_black_24dp)
         } else {
             pl.play()
-            button.setImageResource(R.drawable.ic_pause_black_24dp)
         }
-
     }
 
     override fun onAttach(context: Context?) {
@@ -97,16 +111,17 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
     }
 
     override fun onTrackClicked(item: Track?) {
-
+        Log.d("Miau", "El gato se ha escapado")
     }
 
-    override fun onTrackLongClicked(item: Track?) {
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?, i: ContextMenu.ContextMenuInfo?) {
 
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         player?.queue?.removeChangeListener(this)
         player?.onTrackPlayerListener = null
+        player?.onTrackUpdateListener = null
         player = null
     }
 
@@ -114,6 +129,7 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
         player = (service as Player.PlayerBinder).service
         player?.queue?.addChangeListener(this)
         player?.onTrackPlayerListener = this
+        player?.onTrackUpdateListener = this
     }
 
     companion object {

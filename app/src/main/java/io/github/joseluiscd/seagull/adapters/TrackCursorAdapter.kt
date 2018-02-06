@@ -11,7 +11,6 @@ import android.widget.TextView
 
 import io.github.joseluiscd.seagull.R
 import io.github.joseluiscd.seagull.TracksFragment.OnListFragmentInteractionListener
-import io.github.joseluiscd.seagull.db.TrackListener
 import io.github.joseluiscd.seagull.model.Track
 
 
@@ -27,14 +26,12 @@ class TrackCursorAdapter(context: Context, cursor: Cursor)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.track_view, parent, false)
-        return TrackViewHolder(itemView, clickListener)
+        return TrackViewHolder(itemView, clickListener, menuListener)
     }
 
     override fun onBindViewHolder(viewHolder: TrackViewHolder, cursor: Cursor) {
         val t = Track()
         t.readFromCursor(cursor)
-        viewHolder.title.text = t.title
-        viewHolder.artist.text = t.artist
-        viewHolder.album.text = t.album
+        viewHolder.fillTrack(t)
     }
 }

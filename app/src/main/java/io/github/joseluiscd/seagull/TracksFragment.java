@@ -8,7 +8,10 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -16,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import io.github.joseluiscd.seagull.adapters.Adapter;
 import io.github.joseluiscd.seagull.adapters.ClickListener;
+import io.github.joseluiscd.seagull.adapters.MenuListener;
 import io.github.joseluiscd.seagull.adapters.TrackViewHolder;
 import io.github.joseluiscd.seagull.media.Player;
 import io.github.joseluiscd.seagull.model.Track;
@@ -26,12 +30,14 @@ import io.github.joseluiscd.seagull.model.Track;
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
-public class TracksFragment extends Fragment implements ClickListener, TrackContextMenuFragment.Listener {
+public class TracksFragment extends Fragment implements ClickListener, MenuListener {
 
     private OnListFragmentInteractionListener mListener;
 
     private Adapter<TrackViewHolder, Track> adapter;
     public RecyclerView recyclerView;
+
+    public static final String ARG_ADD_PLACEHOLDER_VIEW = "miausdjfaljñsdfjl, such random";
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -42,6 +48,7 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
 
     public void setAdapter(Adapter<TrackViewHolder, Track> a){
         a.setClickListener(this);
+        a.setMenuListener(this);
 
         this.adapter = a;
         if(recyclerView != null){
@@ -53,11 +60,19 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
         return adapter;
     }
 
-    // TODO: Customize parameter initialization
+
     @SuppressWarnings("unused")
-    public static TracksFragment newInstance(int columnCount) {
+    public static TracksFragment newInstance(boolean putPlaceholder) {
         TracksFragment fragment = new TracksFragment();
+        Bundle b = new Bundle();
+        b.putBoolean(ARG_ADD_PLACEHOLDER_VIEW, putPlaceholder);
+        fragment.setArguments(b);
         return fragment;
+    }
+
+    @SuppressWarnings("unused")
+    public static TracksFragment newInstance() {
+        return newInstance(false);
     }
 
     @Override
@@ -83,13 +98,22 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
         return recyclerView;
     }
 
+    @Override
+    public void onViewCreated(View v, Bundle savedInstance){
+        super.onViewCreated(v, savedInstance);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu m, View v, int position, ContextMenu.ContextMenuInfo i){
+        mListener.onTrackContextMenu(adapter.getItemAt(position), m, v, i);
+    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if(getParentFragment() != null){
             mListener = (OnListFragmentInteractionListener) getParentFragment();
-        } if (context instanceof OnListFragmentInteractionListener) {
+        } else if (context instanceof OnListFragmentInteractionListener) {
             mListener = (OnListFragmentInteractionListener) context;
         }
     }
@@ -106,22 +130,6 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
         mListener.onTrackClicked(adapter.getItemAt(position));
     }
 
-    @Override
-    public void onLongClick(@NotNull View view, int position) {
-        Log.d("Troll", "Miau-click");
-        Track t = adapter.getItemAt(position);
-        TrackContextMenuFragment f = new TrackContextMenuFragment();
-        Bundle b = new Bundle();
-        b.putSerializable(TrackContextMenuFragment.ARG_TRACK, t);
-        f.setArguments(b);
-
-        f.show(getChildFragmentManager(), "Miau_tag");
-    }
-
-    @Override
-    public void onContextMenuItemClicked(int position) {
-        Log.d("Clicked", Integer.toString(position));
-    }
 
     /**
      * This interface must be implemented by activities that contain this
@@ -136,6 +144,6 @@ public class TracksFragment extends Fragment implements ClickListener, TrackCont
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
         void onTrackClicked(Track item);
-        void onTrackLongClicked(Track item);
+        void onTrackContextMenu(Track item, ContextMenu m, View v, ContextMenu.ContextMenuInfo i);
     }
 }

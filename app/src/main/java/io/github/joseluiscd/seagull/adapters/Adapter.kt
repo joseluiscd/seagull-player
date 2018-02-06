@@ -8,6 +8,7 @@ import io.github.joseluiscd.seagull.model.Track
  */
 abstract class Adapter<T: RecyclerView.ViewHolder, Item>: RecyclerView.Adapter<T>() {
     var clickListener: ClickListener? = null
+    var menuListener: MenuListener? = null
 
     abstract fun getItemAt(pos: Int): Item
 }

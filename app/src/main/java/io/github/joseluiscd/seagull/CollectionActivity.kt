@@ -1,13 +1,8 @@
 package io.github.joseluiscd.seagull
 
-import android.app.SearchManager
-import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
-import android.preference.PreferenceManager
-import android.provider.MediaStore
-import android.support.design.widget.TabLayout
-import android.support.v4.view.ViewPager
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
@@ -17,17 +12,15 @@ import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
 import android.util.Log
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import io.github.joseluiscd.seagull.adapters.ClickListener
 import io.github.joseluiscd.seagull.adapters.TrackArrayAdapter
 import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
 import io.github.joseluiscd.seagull.db.Collection
-import io.github.joseluiscd.seagull.model.AppPreferences
 import io.github.joseluiscd.seagull.model.Track
 import io.github.joseluiscd.seagull.net.BeetsServer
-import io.github.joseluiscd.seagull.util.Callback
 
 import kotlinx.android.synthetic.main.activity_collection.*
 import java.util.*
@@ -35,37 +28,37 @@ import java.util.*
 class CollectionActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener,
-        TracksFragment.OnListFragmentInteractionListener
+        TracksFragment.OnListFragmentInteractionListener,
+        Collection.TrackListener
 {
 
 
     companion object {
         val TAG = CollectionActivity::class.qualifiedName
         const val ARG_INIT_SERVER: String = "server_was_initialized_y_eso"
+        const val MENU_REMOVE_TRACK = 1
+        const val MENU_ADD_TRACK = 2
+        const val MENU_NEXT_SONG = 3
 
         init{
-
-            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-
+            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         }
     }
 
-    private var pagerAdapter: CollectionPagerAdapter? = null
+    lateinit var pagerAdapter: CollectionPagerAdapter
 
     lateinit var mediaControlFragment: MediaControlFragment
+    lateinit var beetsServer: BeetsServer
+
+    lateinit var collection: Collection
+
+    var search_results = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_collection)
 
-        if(intent.getBooleanExtra(ARG_INIT_SERVER, false)){
-            val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-
-            if (prefs.getString(AppPreferences.SERVER_URL, null) != null) {
-                val serverUrl = prefs.getString(AppPreferences.SERVER_URL, null)
-                BeetsServer.getInstance(applicationContext, serverUrl)
-            }
-        }
+        beetsServer = BeetsServer(applicationContext)
 
         val toolbar = findViewById(R.id.collection_toolbar) as Toolbar
         setSupportActionBar(toolbar)
@@ -84,6 +77,9 @@ class CollectionActivity :
         collection_pager.adapter = pagerAdapter
 
         collection_tabs.setupWithViewPager(collection_pager)
+
+        collection = Collection.getInstance(applicationContext)
+        collection.addTrackListener(this)
 
         loadDefaultViews()
 
@@ -139,27 +135,72 @@ class CollectionActivity :
         // Handle navigation view item clicks here.
         val id = item.itemId
 
-
+        when(id){
+            R.id.item_settings -> {
+                val i = Intent(this, SettingsActivity::class.java)
+                startActivity(i)
+            }
+        }
         val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
         drawer.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    private fun onTrackMenuItemSelected(menuItem: MenuItem, track: Track): Boolean{
+        when(menuItem.itemId){
+            MENU_REMOVE_TRACK -> {
+                collection.deleteTrack(track)
+            }
+
+            MENU_ADD_TRACK -> {
+                collection.insertTrack(track)
+            }
+
+            MENU_NEXT_SONG -> {
+                mediaControlFragment.player?.queue?.setNextTrack(track)
+            }
+
+            else -> {
+                return false
+            }
+        }
+
         return true
     }
 
     override fun onTrackClicked(item: Track?) {
         Log.d("miau", item.toString())
         Log.d("miau", mediaControlFragment.player.toString())
-        if(item != null) mediaControlFragment.player?.queue?.queueTrack(item)
+        if(item != null){
+            mediaControlFragment.player?.queue?.queueTrack(item)
+        }
     }
 
-    override fun onTrackLongClicked(item: Track?) {
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?, i: ContextMenu.ContextMenuInfo?) {
+        if(item != null && m != null){
+            if(collection.trackExists(item.id)){
+                m.add(Menu.NONE, MENU_REMOVE_TRACK, 0, "Remove from collection")
+                        .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+            } else {
+                m.add(Menu.NONE, MENU_ADD_TRACK, 0, "Add to collection")
+                        .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+            }
+
+            m.add(Menu.NONE, MENU_NEXT_SONG, 1, "Next track")
+                    .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+        }
     }
 
     fun loadDefaultViews(){
-        val fragTracks = pagerAdapter?.tracksFragment ?: return
-        val fragAlbums = pagerAdapter?.albumsFragment ?: return
-        val fragArtists = pagerAdapter?.artistsFragment ?: return
+        search_results = false
+        onTrackListChanged()
 
-        fragTracks.adapter = TrackCursorAdapter(this, Collection.getInstance().allTracks)
+    }
+
+    override fun onTrackListChanged() {
+        if(!search_results){
+            pagerAdapter.tracksFragment.adapter = TrackCursorAdapter(this, collection.allTracks)
+        }
 
     }
 
@@ -175,11 +216,11 @@ class CollectionActivity :
             }
             2 -> { //Tracks
                 Log.d(TAG, "Tracks query: $query")
-                BeetsServer.getInstance().tracks.queryTracks(query, { tracks ->
+                beetsServer.tracks.queryTracks(query, { tracks ->
                     if(tracks != null){
                         showQueryTracks(tracks)
                     } else {
-                        showQueryTracks(Collection.getInstance().queryTracks(query))
+                        showQueryTracks(collection.queryTracks(query))
                     }
                 })
                 true
@@ -191,14 +232,12 @@ class CollectionActivity :
     }
 
     fun showQueryTracks(tracks: Array<Track>){
-        Log.d(TAG, Arrays.toString(tracks))
-        val frag = pagerAdapter?.tracksFragment ?: return
-
-        frag.adapter = TrackArrayAdapter(tracks)
+        pagerAdapter.tracksFragment.adapter = TrackArrayAdapter(tracks)
+        search_results = true
     }
 
     fun showQueryTracks(tracks: Cursor){
-        val frag = pagerAdapter?.tracksFragment ?: return
+        val frag = pagerAdapter.tracksFragment
 
         frag.adapter = TrackCursorAdapter(this, tracks)
     }

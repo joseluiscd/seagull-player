@@ -21,7 +21,7 @@ import io.github.joseluiscd.seagull.model.Track;
 
 public class Collection {
     private static Collection instance;
-    private static Context context;
+
     private CollectionOpenHelper helper;
 
     public static final String ALBUM_TABLE = "albums";
@@ -32,20 +32,18 @@ public class Collection {
     public static final String TRACK_TITLE = "title";
     public static final String TRACK_ALBUM = "album";
     public static final String TRACK_ARTIST = "artist";
+    public static final String TRACK_ALBUM_RELEASE_ID = "mbid";
 
     private ArrayList<TrackListener> trackListeners = new ArrayList<>();
 
-    private Collection(){
-        helper = new CollectionOpenHelper(context);
+    private Collection(Context c){
+        helper = new CollectionOpenHelper(c);
     }
 
-    public static void setContext(Context c){
-        context = c;
-    }
 
-    public static Collection getInstance(){
+    public static Collection getInstance(Context c){
         if(instance == null){
-            instance = new Collection();
+            instance = new Collection(c);
         }
 
         return instance;
@@ -78,7 +76,7 @@ public class Collection {
     }
 
     public boolean trackExists(int id){
-        SQLiteDatabase db = helper.getWritableDatabase();
+        SQLiteDatabase db = helper.getReadableDatabase();
         Cursor c = db.query(TRACK_TABLE, new String[]{"_id"}, "_id=?", new String[]{Integer.toString(id)}, null, null, null, null);
         if(c.isAfterLast()){
             c.close();
@@ -95,11 +93,19 @@ public class Collection {
         v.put(TRACK_TITLE, t.getTitle());
         v.put(TRACK_ALBUM, t.getAlbum());
         v.put(TRACK_ARTIST, t.getArtist());
+        v.put(TRACK_ALBUM_RELEASE_ID, t.getMb_releasegroupid());
         db.insert(TRACK_TABLE, null, v);
     }
 
     public void insertTrack(Track t){
         _insertTrack(t);
+        notifyTracksChanged();
+    }
+
+
+    public void deleteTrack(Track t){
+        SQLiteDatabase db = helper.getWritableDatabase();
+        db.delete(TRACK_TABLE, "_id=?", new String[]{String.valueOf(t.getId())});
         notifyTracksChanged();
     }
 
@@ -166,6 +172,10 @@ public class Collection {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         }
+    }
+
+    public interface TrackListener {
+        void onTrackListChanged();
     }
 
 }

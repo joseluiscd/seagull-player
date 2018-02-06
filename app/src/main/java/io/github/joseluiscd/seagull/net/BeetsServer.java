@@ -1,17 +1,25 @@
 package io.github.joseluiscd.seagull.net;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import io.github.joseluiscd.seagull.model.AppPreferences;
 import io.github.joseluiscd.seagull.model.Track;
 import io.github.joseluiscd.seagull.util.Callback;
+import okhttp3.OkHttpClient;
 
 /**
  * Created by joseluis on 3/12/17.
@@ -25,27 +33,26 @@ public class BeetsServer {
     @NonNull public final Tracks tracks;
     @NonNull public final Albums albums;
 
-    private static BeetsServer instance;
 
-    public static BeetsServer getInstance(Context appContext, String serverUrl){
-        if(instance == null){
-            instance = new BeetsServer(appContext, serverUrl);
-        }
-        return instance;
+    public static void setServerURL(Context context, String url){
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        SharedPreferences.Editor editPrefs = prefs.edit();
+        editPrefs.putString(AppPreferences.SERVER_URL, url);
+        editPrefs.apply();
     }
 
-    @NonNull public static BeetsServer getInstance(){
-        if(instance == null){
-            throw new IllegalStateException("Illo, estás loco?? Llama primero a getInstance con argumentos");
-        }
-        return instance;
+    public static String getServerURL(Context context){
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(AppPreferences.SERVER_URL, null);
     }
 
-    private BeetsServer(Context appContext, String server){
+    public BeetsServer(Context appContext){
         this.context = appContext;
-        this.server = server;
+
 
         try{
+            this.server = getServerURL(appContext);
             this.serverUrl = new URL(server);
         } catch (MalformedURLException e) {
             //TODO: Potencial fallo de seguridad
@@ -151,3 +158,4 @@ public class BeetsServer {
         public Track[] results;
     }
 }
+

@@ -28,6 +28,11 @@ class Queue() {
         notifyListeners()
     }
 
+    fun setNextTrack(t: Track){
+        tracks.add(0, t)
+        notifyListeners()
+    }
+
     fun popNext(): Track? {
         if(tracks.isNotEmpty()){
             val t = tracks[0]
@@ -37,6 +42,11 @@ class Queue() {
         }
 
         return null
+    }
+
+    fun clear(){
+        tracks.clear()
+        notifyListeners()
     }
 
     interface OnQueueChangedListener {
