@@ -190,7 +190,8 @@ public class Collection {
                     "year INTEGER," +
                     "genre TEXT," +
                     "mbid TEXT UNIQUE," +
-                    "album INTEGER REFERENCES albums);");
+                    "album TEXT," +
+                    "albumId INTEGER REFERENCES albums);");
 
             db.execSQL("CREATE INDEX artist_sort_tracks ON tracks(title);");
 

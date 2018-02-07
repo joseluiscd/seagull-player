@@ -90,13 +90,13 @@ public class TracksFragment
 
     @Override
     public void onClick(@NotNull View view, int position) {
-        mListener.onTrackClicked(adapter.getItemAt(position), view);
+        mListener.onTrackClicked(adapter.getItemAt(position), position, view);
     }
 
     @Override
-    protected void onContextMenu(Track t, ContextMenu m, View v) {
+    protected void onContextMenu(Track t, ContextMenu m, int pos, View v) {
         if(mListener != null){
-            mListener.onTrackContextMenu(t, m, v);
+            mListener.onTrackContextMenu(t, m, pos, v);
         }
     }
 
@@ -112,7 +112,7 @@ public class TracksFragment
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onTrackClicked(Track item, View v);
-        void onTrackContextMenu(Track item, ContextMenu m, View v);
+        void onTrackClicked(Track item, int pos, View v);
+        void onTrackContextMenu(Track item, ContextMenu m, int pos, View v);
     }
 }

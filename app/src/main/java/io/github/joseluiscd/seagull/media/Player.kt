@@ -29,6 +29,9 @@ class Player()
     lateinit var beets: BeetsServer
     lateinit var theHandler: Handler
 
+    var currentTrack: Track? = null
+        private set
+
     var isPlaying: Boolean = false
         private set
 
@@ -49,6 +52,7 @@ class Player()
     fun play(){
         if(playingSomething){
             player.start()
+            isPlaying = true
         } else {
             playingSomething = true
             prepareNext()
@@ -77,6 +81,7 @@ class Player()
     private fun prepareNext(){
         val t = queue.popNext()
         if(t != null){
+            currentTrack = t
             onTrackPlayerListener?.onTrackPlayed(t)
             player.setDataSource(t.url(beets))
             player.prepareAsync()

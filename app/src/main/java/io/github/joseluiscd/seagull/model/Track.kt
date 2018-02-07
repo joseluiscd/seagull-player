@@ -74,7 +74,7 @@ class Track : DatabaseItem, Serializable {
     override fun dumpToCursor(v: ContentValues) {
         v.put("_id", id)
         v.put(Collection.TRACK_TITLE, title)
-        v.put(Collection.TRACK_ALBUM, albumId)
+        v.put(Collection.TRACK_ALBUM, album)
         v.put(Collection.TRACK_ARTIST, artist)
         v.put(Collection.TRACK_ALBUM_RELEASE_ID, mb_releasegroupid)
     }

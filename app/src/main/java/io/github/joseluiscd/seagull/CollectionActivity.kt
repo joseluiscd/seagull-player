@@ -18,6 +18,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import io.github.joseluiscd.seagull.adapters.*
+import io.github.joseluiscd.seagull.behavior.TrackCollectionBehavior
 import io.github.joseluiscd.seagull.db.Collection
 import io.github.joseluiscd.seagull.model.Album
 import io.github.joseluiscd.seagull.model.Track
@@ -40,9 +41,7 @@ class CollectionActivity :
     companion object {
         val TAG = CollectionActivity::class.qualifiedName
         const val ARG_INIT_SERVER: String = "server_was_initialized_y_eso"
-        const val MENU_REMOVE_TRACK = 1
-        const val MENU_ADD_TRACK = 2
-        const val MENU_NEXT_SONG = 3
+
         const val MENU_ADD_ALBUM = 4
         const val MENU_REMOVE_ALBUM = 5
         const val MENU_QUEUE_ALBUM_ALL = 6
@@ -59,6 +58,7 @@ class CollectionActivity :
     lateinit var beetsServer: BeetsServer
 
     lateinit var collection: Collection
+    lateinit var trackSelectBehavior: TrackCollectionBehavior
 
     var search_results = false
 
@@ -68,13 +68,12 @@ class CollectionActivity :
 
         beetsServer = BeetsServer(applicationContext)
 
-        val toolbar = findViewById(R.id.collection_toolbar) as Toolbar
-        setSupportActionBar(toolbar)
+        setSupportActionBar(collection_toolbar)
 
 
         val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
         val toggle = ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+                this, drawer, collection_toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -90,6 +89,7 @@ class CollectionActivity :
         collection.addTrackListener(this)
         collection.addAlbumListener(this)
 
+
         loadDefaultViews()
 
     }
@@ -97,6 +97,7 @@ class CollectionActivity :
     override fun onStart() {
         super.onStart()
         mediaControlFragment = supportFragmentManager.findFragmentByTag("media_control") as MediaControlFragment
+        trackSelectBehavior = TrackCollectionBehavior(mediaControlFragment, drawer_layout)
     }
 
     override fun onBackPressed() {
@@ -155,30 +156,6 @@ class CollectionActivity :
         return true
     }
 
-    private fun onTrackContextMenuItemSelected(menuItem: MenuItem, track: Track): Boolean{
-        when(menuItem.itemId){
-            MENU_REMOVE_TRACK -> {
-                collection.deleteTrack(track)
-            }
-
-            MENU_ADD_TRACK -> {
-                collection.insertTrack(track)
-            }
-
-            MENU_NEXT_SONG -> {
-                mediaControlFragment.player?.queue?.setNextTrack(track)
-
-                Snackbar.make(drawer_layout, "Added to queue", Snackbar.LENGTH_SHORT).show()
-            }
-
-            else -> {
-                return false
-            }
-        }
-
-        return true
-    }
-
     private fun onAlbumContextMenuItemSelected(menuItem: MenuItem, album: Album): Boolean {
         when(menuItem.itemId){
             MENU_ADD_ALBUM -> {
@@ -197,30 +174,19 @@ class CollectionActivity :
         return true
     }
 
-    override fun onTrackClicked(item: Track?, v: View) {
-        if(item != null){
-            mediaControlFragment.player?.queue?.queueTrack(item)
-            Snackbar.make(drawer_layout, "Added to queue", Snackbar.LENGTH_SHORT).show()
-        }
+    override fun onTrackClicked(item: Track?, pos: Int, v: View) {
+        trackSelectBehavior.onTrackClicked(item, pos, v)
     }
 
-    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?) {
-        if(item != null && m != null){
-            if(collection.trackExists(item.id)){
-                m.add(Menu.NONE, MENU_REMOVE_TRACK, 0, "Remove from collection")
-                        .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
-            } else {
-                m.add(Menu.NONE, MENU_ADD_TRACK, 0, "Add to collection")
-                        .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
-            }
-
-            m.add(Menu.NONE, MENU_NEXT_SONG, 1, "Next track")
-                    .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
-        }
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, pos: Int, v: View?) {
+        trackSelectBehavior.onTrackContextMenu(item, m, pos, v)
     }
 
     override fun onAlbumClicked(album: Album?, v: View?) {
+        val i = Intent(this, AlbumActivity::class.java)
+        i.putExtra(AlbumActivity.ARG_ALBUM, album)
 
+        startActivity(i)
     }
 
     override fun onAlbumContextMenu(album: Album?, m: ContextMenu?, v: View?) {

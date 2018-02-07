@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.squareup.picasso.Picasso
 import io.github.joseluiscd.seagull.adapters.TrackQueueAdapter
+import io.github.joseluiscd.seagull.behavior.TrackPlaylistBehavior
 import io.github.joseluiscd.seagull.media.Player
 import io.github.joseluiscd.seagull.media.Queue
 import io.github.joseluiscd.seagull.model.Track
@@ -35,6 +36,7 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
     lateinit var queueFragment: TracksFragment
 
     var player: Player? = null
+    var trackBehavior: TrackPlaylistBehavior? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,17 +76,21 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
     }
 
     override fun queueChanged(q: Queue) {
-        queueFragment?.adapter = TrackQueueAdapter(q)
+        queueFragment.adapter.notifyDataSetChanged()
     }
 
-    override fun onTrackPlayed(t: Track) {
-        play_button.setImageResource(R.drawable.ic_pause_black_24dp)
+    fun putTrackData(t: Track){
         current_track_title.text = t.title
         current_track_artist.text = t.artist
         Picasso.with(context.applicationContext)
                 .load(t.albumArtURL)
                 .placeholder(R.drawable.lp)
                 .into(current_track_art)
+    }
+
+    override fun onTrackPlayed(t: Track) {
+        play_button.setImageResource(R.drawable.ic_pause_black_24dp)
+        putTrackData(t)
     }
 
     override fun trackUpdated(percent: Float) {
@@ -99,6 +105,7 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
             play_button.setImageResource(R.drawable.ic_play_arrow_black_24dp)
         } else {
             pl.play()
+            play_button.setImageResource(R.drawable.ic_pause_black_24dp)
         }
     }
 
@@ -111,12 +118,12 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
         super.onDetach()
     }
 
-    override fun onTrackClicked(item: Track?, view: View) {
-        Log.d("Miau", "El gato se ha escapado")
+    override fun onTrackClicked(item: Track?, pos: Int, view: View) {
+        trackBehavior?.onTrackClicked(item, pos, view)
     }
 
-    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?) {
-
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, pos: Int, v: View?) {
+        trackBehavior?.onTrackContextMenu(item, m, pos, v)
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -124,6 +131,7 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
         player?.onTrackPlayerListener = null
         player?.onTrackUpdateListener = null
         player = null
+        trackBehavior = null
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -131,6 +139,20 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
         player?.queue?.addChangeListener(this)
         player?.onTrackPlayerListener = this
         player?.onTrackUpdateListener = this
+
+        val p = player
+
+        if(p != null){
+            val t = p.currentTrack
+            if(t != null) putTrackData(t)
+            if(p.isPlaying){
+                play_button.setImageResource(R.drawable.ic_pause_black_24dp)
+            }
+
+            val adapter = TrackQueueAdapter(p.queue)
+            queueFragment.adapter = adapter
+            trackBehavior = TrackPlaylistBehavior(adapter)
+        }
     }
 
     companion object {

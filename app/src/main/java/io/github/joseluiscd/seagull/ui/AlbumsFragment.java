@@ -33,7 +33,7 @@ public class AlbumsFragment extends RecyclerFragment<Album, AlbumViewHolder> imp
 
     public AlbumsFragment() {
         super();
-        this.cols = 3;
+        this.cols = 2;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class AlbumsFragment extends RecyclerFragment<Album, AlbumViewHolder> imp
 
 
     @Override
-    protected void onContextMenu(Album t, ContextMenu m, View v) {
+    protected void onContextMenu(Album t, ContextMenu m, int pos, View v) {
         if(mListener != null){
             mListener.onAlbumContextMenu(t, m, v);
         }

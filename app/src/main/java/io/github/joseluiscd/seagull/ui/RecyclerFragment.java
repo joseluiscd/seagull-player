@@ -59,10 +59,10 @@ public abstract class RecyclerFragment<Item, ViewHolder extends AbstractViewHold
 
     @Override
     public void onCreateContextMenu(ContextMenu m, View v, int position, ContextMenu.ContextMenuInfo i){
-        onContextMenu(adapter.getItemAt(position), m, v);
+        onContextMenu(adapter.getItemAt(position), m, position, v);
     }
 
     protected abstract int getFragmentLayout();
-    protected abstract void onContextMenu(Item t, ContextMenu m, View v);
+    protected abstract void onContextMenu(Item t, ContextMenu m, int pos, View v);
 
 }

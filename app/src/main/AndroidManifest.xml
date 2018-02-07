@@ -37,12 +37,16 @@
             android:name=".PlaylistActivity"
             android:label="@string/title_activity_playlist"
             android:theme="@style/AppTheme" />
-
         <activity
-            android:theme="@style/AppTheme.ActionBar"
             android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
             android:parentActivityName=".CollectionActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:theme="@style/AppTheme.ActionBar" />
+        <activity
+            android:name=".AlbumActivity"
+            android:label="@string/title_activity_album"
+            android:parentActivityName=".CollectionActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

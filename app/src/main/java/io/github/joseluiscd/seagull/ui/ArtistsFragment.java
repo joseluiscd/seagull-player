@@ -24,7 +24,7 @@ public class ArtistsFragment extends RecyclerFragment<String, AbstractViewHolder
     }
 
     @Override
-    protected void onContextMenu(String t, ContextMenu m, View v) {
+    protected void onContextMenu(String t, ContextMenu m, int pos, View v) {
 
     }
 }
