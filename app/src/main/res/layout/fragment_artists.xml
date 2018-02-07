@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.RecyclerView layout_width=""
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list"
     android:name="io.github.joseluiscd.seagull.TracksFragment"
     android:scrollbars="vertical"
@@ -10,5 +11,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context="io.github.joseluiscd.seagull.ui.TracksFragment"
-    tools:listitem="@layout/track_view" />
+    tools:context="io.github.joseluiscd.seagull.ui.ArtistsFragment"
+    tools:listitem="@android:layout/simple_list_item_1" />

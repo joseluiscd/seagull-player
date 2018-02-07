@@ -99,7 +99,7 @@
 
     <fragment
         android:id="@+id/fragment"
-        android:name="io.github.joseluiscd.seagull.TracksFragment"
+        android:name="io.github.joseluiscd.seagull.ui.TracksFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:tag="media_control"

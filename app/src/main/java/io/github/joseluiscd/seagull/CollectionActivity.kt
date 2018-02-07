@@ -4,6 +4,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.design.widget.Snackbar
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
@@ -16,20 +17,23 @@ import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import io.github.joseluiscd.seagull.adapters.TrackArrayAdapter
-import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
+import io.github.joseluiscd.seagull.adapters.*
 import io.github.joseluiscd.seagull.db.Collection
+import io.github.joseluiscd.seagull.model.Album
 import io.github.joseluiscd.seagull.model.Track
 import io.github.joseluiscd.seagull.net.BeetsServer
+import io.github.joseluiscd.seagull.ui.AlbumsFragment
+import io.github.joseluiscd.seagull.ui.TracksFragment
 
 import kotlinx.android.synthetic.main.activity_collection.*
-import java.util.*
 
 class CollectionActivity :
         AppCompatActivity(),
         NavigationView.OnNavigationItemSelectedListener,
         TracksFragment.OnListFragmentInteractionListener,
-        Collection.TrackListener
+        AlbumsFragment.OnListFragmentInteractionListener,
+        Collection.TrackListener,
+        Collection.AlbumListener
 {
 
 
@@ -39,6 +43,10 @@ class CollectionActivity :
         const val MENU_REMOVE_TRACK = 1
         const val MENU_ADD_TRACK = 2
         const val MENU_NEXT_SONG = 3
+        const val MENU_ADD_ALBUM = 4
+        const val MENU_REMOVE_ALBUM = 5
+        const val MENU_QUEUE_ALBUM_ALL = 6
+        const val MENU_QUEUE_ALBUM_SAVED = 7
 
         init{
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
@@ -80,6 +88,7 @@ class CollectionActivity :
 
         collection = Collection.getInstance(applicationContext)
         collection.addTrackListener(this)
+        collection.addAlbumListener(this)
 
         loadDefaultViews()
 
@@ -141,12 +150,12 @@ class CollectionActivity :
                 startActivity(i)
             }
         }
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        drawer.closeDrawer(GravityCompat.START)
+
+        drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
-    private fun onTrackMenuItemSelected(menuItem: MenuItem, track: Track): Boolean{
+    private fun onTrackContextMenuItemSelected(menuItem: MenuItem, track: Track): Boolean{
         when(menuItem.itemId){
             MENU_REMOVE_TRACK -> {
                 collection.deleteTrack(track)
@@ -158,6 +167,8 @@ class CollectionActivity :
 
             MENU_NEXT_SONG -> {
                 mediaControlFragment.player?.queue?.setNextTrack(track)
+
+                Snackbar.make(drawer_layout, "Added to queue", Snackbar.LENGTH_SHORT).show()
             }
 
             else -> {
@@ -168,50 +179,104 @@ class CollectionActivity :
         return true
     }
 
-    override fun onTrackClicked(item: Track?) {
-        Log.d("miau", item.toString())
-        Log.d("miau", mediaControlFragment.player.toString())
+    private fun onAlbumContextMenuItemSelected(menuItem: MenuItem, album: Album): Boolean {
+        when(menuItem.itemId){
+            MENU_ADD_ALBUM -> {
+                collection.insertAlbum(album)
+            }
+
+            MENU_REMOVE_ALBUM -> {
+                collection.deleteAlbum(album)
+            }
+
+            else -> {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    override fun onTrackClicked(item: Track?, v: View) {
         if(item != null){
             mediaControlFragment.player?.queue?.queueTrack(item)
+            Snackbar.make(drawer_layout, "Added to queue", Snackbar.LENGTH_SHORT).show()
         }
     }
 
-    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?, i: ContextMenu.ContextMenuInfo?) {
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?) {
         if(item != null && m != null){
             if(collection.trackExists(item.id)){
                 m.add(Menu.NONE, MENU_REMOVE_TRACK, 0, "Remove from collection")
-                        .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+                        .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
             } else {
                 m.add(Menu.NONE, MENU_ADD_TRACK, 0, "Add to collection")
-                        .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+                        .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
             }
 
             m.add(Menu.NONE, MENU_NEXT_SONG, 1, "Next track")
-                    .setOnMenuItemClickListener { onTrackMenuItemSelected(it, item) }
+                    .setOnMenuItemClickListener { onTrackContextMenuItemSelected(it, item) }
+        }
+    }
+
+    override fun onAlbumClicked(album: Album?, v: View?) {
+
+    }
+
+    override fun onAlbumContextMenu(album: Album?, m: ContextMenu?, v: View?) {
+        if(album != null && m != null){
+            if(collection.albumExists(album.id)){
+                m.add(Menu.NONE, MENU_REMOVE_ALBUM, 0, "Remove from collection")
+                        .setOnMenuItemClickListener { onAlbumContextMenuItemSelected(it, album) }
+            } else {
+                m.add(Menu.NONE, MENU_ADD_ALBUM, 0, "Add to collection")
+                        .setOnMenuItemClickListener { onAlbumContextMenuItemSelected(it, album) }
+            }
+
+            m.add(Menu.NONE, MENU_QUEUE_ALBUM_ALL, 1, "Add to queue")
+                    .setOnMenuItemClickListener { onAlbumContextMenuItemSelected(it, album) }
+
         }
     }
 
     fun loadDefaultViews(){
         search_results = false
         onTrackListChanged()
+        onAlbumListChanged()
 
+        pagerAdapter.artistsFragment.adapter = ArtistArrayAdapter()
     }
 
     override fun onTrackListChanged() {
         if(!search_results){
             pagerAdapter.tracksFragment.adapter = TrackCursorAdapter(this, collection.allTracks)
         }
+    }
 
+    override fun onAlbumListChanged() {
+        if(!search_results){
+            pagerAdapter.albumsFragment.adapter = AlbumCursorAdapter(this, collection.allAlbums)
+        }
     }
 
     fun onQuery(query: String): Boolean {
         return when(collection_tabs.selectedTabPosition){
             0 -> { //Artists
-                Log.d(TAG, "Artist query: $query")
+                beetsServer.artists.allArtists({artists ->
+                    if(artists != null){
+                        Log.d("Miau", "artistazos")
+                        showQueryArtists(artists)
+                    }
+                })
                 true
             }
             1 -> { //Albums
                 Log.d(TAG, "Albums query: $query")
+                beetsServer.albums.queryAlbums(query, { albums ->
+                    if(albums != null){
+                        showQueryAlbums(albums)
+                    }
+                })
                 true
             }
             2 -> { //Tracks
@@ -240,8 +305,18 @@ class CollectionActivity :
         val frag = pagerAdapter.tracksFragment
 
         frag.adapter = TrackCursorAdapter(this, tracks)
+        search_results = true
     }
 
+    fun showQueryAlbums(albums: Array<Album>){
+        pagerAdapter.albumsFragment.adapter = AlbumArrayAdapter(albums)
+        search_results = true
+    }
+
+    fun showQueryArtists(artists: Array<String>){
+        pagerAdapter.artistsFragment.adapter = ArtistArrayAdapter(artists)
+        search_results = true
+    }
 
 
 }

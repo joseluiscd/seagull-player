@@ -19,7 +19,7 @@ class TrackQueueAdapter(val queue: Queue): Adapter<TrackViewHolder, Track>() {
 
     override fun onBindViewHolder(viewHolder: TrackViewHolder, position: Int) {
         val t = queue.tracks[position]
-        viewHolder.fillTrack(t)
+        viewHolder.fillItem(t)
     }
 
     override fun getItemAt(pos: Int): Track = queue.tracks[pos]

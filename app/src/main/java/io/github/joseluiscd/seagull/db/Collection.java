@@ -27,6 +27,7 @@ public class Collection {
     public static final String ALBUM_TABLE = "albums";
     public static final String ALBUM_TITLE = "title";
     public static final String ALBUM_ARTIST = "artist";
+    public static final String ALBUM_RELEASE_ID = "mbid";
 
     public static final String TRACK_TABLE = "tracks";
     public static final String TRACK_TITLE = "title";
@@ -35,6 +36,7 @@ public class Collection {
     public static final String TRACK_ALBUM_RELEASE_ID = "mbid";
 
     private ArrayList<TrackListener> trackListeners = new ArrayList<>();
+    private ArrayList<AlbumListener> albumListeners = new ArrayList<>();
 
     private Collection(Context c){
         helper = new CollectionOpenHelper(c);
@@ -67,12 +69,7 @@ public class Collection {
 
     public Cursor queryTracks(String query){
         SQLiteDatabase db = helper.getReadableDatabase();
-        return db.query(TRACK_TABLE, null, "title LIKE ?", new String[]{query}, null, null, "title");
-    }
-
-    public Cursor getEmptyTracksCursor(){
-        SQLiteDatabase db = helper.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM tracks WHERE 1=0;", null);
+        return db.query(TRACK_TABLE, null, "title LIKE ?", new String[]{"%"+query+"%"}, null, null, "title");
     }
 
     public boolean trackExists(int id){
@@ -86,20 +83,36 @@ public class Collection {
         return true;
     }
 
+    public boolean albumExists(int id){
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.query(ALBUM_TABLE, new String[]{"_id"}, "_id=?", new String[]{Integer.toString(id)}, null, null, null, null);
+        if(c.isAfterLast()){
+            c.close();
+            return false;
+        }
+        c.close();
+        return true;
+    }
+
     public void _insertTrack(Track t){
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues v = new ContentValues();
-        v.put("_id", t.getId());
-        v.put(TRACK_TITLE, t.getTitle());
-        v.put(TRACK_ALBUM, t.getAlbum());
-        v.put(TRACK_ARTIST, t.getArtist());
-        v.put(TRACK_ALBUM_RELEASE_ID, t.getMb_releasegroupid());
+        t.dumpToCursor(v);
         db.insert(TRACK_TABLE, null, v);
     }
 
     public void insertTrack(Track t){
         _insertTrack(t);
         notifyTracksChanged();
+    }
+
+    public void insertAlbum(Album b){
+        SQLiteDatabase db = helper.getWritableDatabase();
+        ContentValues v = new ContentValues();
+        b.dumpToCursor(v);
+        db.insert(ALBUM_TABLE, null, v);
+
+        notifyAlbumsChanged();
     }
 
 
@@ -109,9 +122,21 @@ public class Collection {
         notifyTracksChanged();
     }
 
+    public void deleteAlbum(Album t){
+        SQLiteDatabase db = helper.getWritableDatabase();
+        db.delete(ALBUM_TABLE, "_id=?", new String[]{String.valueOf(t.getId())});
+        notifyAlbumsChanged();
+    }
+
     private void notifyTracksChanged(){
         for(TrackListener t: trackListeners){
             t.onTrackListChanged();
+        }
+    }
+
+    private void notifyAlbumsChanged(){
+        for(AlbumListener t: albumListeners){
+            t.onAlbumListChanged();
         }
     }
 
@@ -121,6 +146,14 @@ public class Collection {
 
     public void removeTrackListener(TrackListener tl){
         trackListeners.remove(tl);
+    }
+
+    public void addAlbumListener(AlbumListener al){
+        albumListeners.add(al);
+    }
+
+    public void removeAlbumListener(AlbumListener al){
+        albumListeners.remove(al);
     }
 
     class CollectionOpenHelper extends SQLiteOpenHelper {
@@ -176,6 +209,10 @@ public class Collection {
 
     public interface TrackListener {
         void onTrackListChanged();
+    }
+
+    public interface AlbumListener {
+        void onAlbumListChanged();
     }
 
 }

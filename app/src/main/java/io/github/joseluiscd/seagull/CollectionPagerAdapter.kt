@@ -1,17 +1,14 @@
 package io.github.joseluiscd.seagull
 
 import android.content.Context
-import android.database.Cursor
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
-import io.github.joseluiscd.seagull.adapters.TrackArrayAdapter
+import io.github.joseluiscd.seagull.model.Album
+import io.github.joseluiscd.seagull.ui.AlbumsFragment
+import io.github.joseluiscd.seagull.ui.ArtistsFragment
 
-import java.util.ArrayList
-
-import io.github.joseluiscd.seagull.adapters.TrackCursorAdapter
-import io.github.joseluiscd.seagull.db.Collection
-import io.github.joseluiscd.seagull.model.Track
+import io.github.joseluiscd.seagull.ui.TracksFragment
 
 /**
  * Created by joseluis on 8/12/17.
@@ -22,9 +19,9 @@ class CollectionPagerAdapter(c: Context, fragmentManager: FragmentManager)
 
     val context: Context = c.applicationContext
 
-    val albumsFragment: Fragment = Fragment()
+    val albumsFragment: AlbumsFragment = AlbumsFragment()
     val tracksFragment: TracksFragment = TracksFragment.newInstance(true)
-    val artistsFragment: Fragment = Fragment()
+    val artistsFragment: ArtistsFragment = ArtistsFragment()
 
 
     override fun getItem(position: Int): Fragment = when(position){

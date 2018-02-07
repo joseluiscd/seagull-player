@@ -17,6 +17,7 @@ import io.github.joseluiscd.seagull.adapters.TrackQueueAdapter
 import io.github.joseluiscd.seagull.media.Player
 import io.github.joseluiscd.seagull.media.Queue
 import io.github.joseluiscd.seagull.model.Track
+import io.github.joseluiscd.seagull.ui.TracksFragment
 import kotlinx.android.synthetic.main.fragment_media_control.*
 
 /**
@@ -110,11 +111,11 @@ class MediaControlFragment : Fragment(), Queue.OnQueueChangedListener, ServiceCo
         super.onDetach()
     }
 
-    override fun onTrackClicked(item: Track?) {
+    override fun onTrackClicked(item: Track?, view: View) {
         Log.d("Miau", "El gato se ha escapado")
     }
 
-    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?, i: ContextMenu.ContextMenuInfo?) {
+    override fun onTrackContextMenu(item: Track?, m: ContextMenu?, v: View?) {
 
     }
 

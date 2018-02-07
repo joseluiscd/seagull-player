@@ -16,6 +16,7 @@ import com.squareup.picasso.Picasso;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import io.github.joseluiscd.seagull.model.Album;
 import io.github.joseluiscd.seagull.model.AppPreferences;
 import io.github.joseluiscd.seagull.model.Track;
 import io.github.joseluiscd.seagull.util.Callback;
@@ -32,6 +33,7 @@ public class BeetsServer {
 
     @NonNull public final Tracks tracks;
     @NonNull public final Albums albums;
+    @NonNull public final Artists artists;
 
 
     public static void setServerURL(Context context, String url){
@@ -61,6 +63,7 @@ public class BeetsServer {
 
         tracks = new Tracks(this);
         albums = new Albums(this);
+        artists = new Artists(this);
 
     }
 
@@ -148,14 +151,77 @@ public class BeetsServer {
             this.server = server;
         }
 
+        public void queryAlbums(String query, final Callback<Album[]> c){
+            GsonRequest<AlbumQuery> req = new GsonRequest<>(
+                    Request.Method.GET,
+                    getUrlWithPath("/album/query/"+query),
+                    AlbumQuery.class,
+                    new Response.Listener<AlbumQuery>() {
+                        @Override
+                        public void onResponse(AlbumQuery response) {
+                            c.call(response.results);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            c.call(null);
+                        }
+                    }
+
+            );
+            NetworkManager.getInstance(context).request(req);
+        }
+    }
+
+    public class Artists {
+        BeetsServer server;
+
+        Artists(BeetsServer server){ this.server = server; }
+
+        public void allArtists(final Callback<String[]> c){
+            GsonRequest<ArtistItems> req = new GsonRequest<>(
+                    Request.Method.GET,
+                    getUrlWithPath("/artist"),
+                    ArtistItems.class,
+                    new Response.Listener<ArtistItems>() {
+                        @Override
+                        public void onResponse(ArtistItems response) {
+                            c.call(response.artist_names);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            c.call(null);
+                        }
+                    }
+
+            );
+            NetworkManager.getInstance(context).request(req);
+        }
     }
 
     private class TrackItems {
         public Track[] items;
     }
 
+    private class ArtistItems {
+        public String artist_names[];
+    }
+
     private class TrackQuery {
         public Track[] results;
+    }
+
+    private class AlbumQuery {
+        public Album[] results;
+    }
+
+    private class AlbumWithCallback{
+        public Album album;
+        public Callback<AlbumWithCallback> cb;
+
     }
 }
 

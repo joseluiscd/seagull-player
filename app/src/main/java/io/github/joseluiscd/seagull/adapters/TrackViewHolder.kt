@@ -22,7 +22,7 @@ class TrackViewHolder(
         private val clickListener: ClickListener? = null,
         private val menuListener: MenuListener? = null
 )
-    : RecyclerView.ViewHolder(mView), View.OnClickListener, View.OnCreateContextMenuListener {
+    : AbstractViewHolder<Track>(mView, clickListener, menuListener) {
 
     internal var title: TextView
     internal var artist: TextView
@@ -30,24 +30,13 @@ class TrackViewHolder(
     internal var albumArt: ImageView
 
     init {
-        mView.setOnCreateContextMenuListener(this)
-        mView.setOnClickListener(this)
-
         title = mView.findViewById(R.id.track_title)
         artist = mView.findViewById(R.id.track_artist)
         album = mView.findViewById(R.id.track_album)
         albumArt = mView.findViewById(R.id.track_album_image)
     }
 
-    override fun onClick(v: View) {
-        clickListener?.onClick(mView, adapterPosition)
-    }
-
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
-        menuListener?.onCreateContextMenu(menu, v, adapterPosition, menuInfo)
-    }
-
-    fun fillTrack(t: Track) {
+    override fun fillItem(t: Track) {
         title.text = t.title
         artist.text = t.artist
         album.text = t.album

@@ -1,5 +1,6 @@
 package io.github.joseluiscd.seagull.model
 
+import android.content.ContentValues
 import android.database.Cursor
 import android.util.Log
 import android.view.View
@@ -68,6 +69,14 @@ class Track : DatabaseItem, Serializable {
 
         t = c.getColumnIndex(Collection.TRACK_ALBUM_RELEASE_ID)
         mb_releasegroupid = c.getString(t)
+    }
+
+    override fun dumpToCursor(v: ContentValues) {
+        v.put("_id", id)
+        v.put(Collection.TRACK_TITLE, title)
+        v.put(Collection.TRACK_ALBUM, albumId)
+        v.put(Collection.TRACK_ARTIST, artist)
+        v.put(Collection.TRACK_ALBUM_RELEASE_ID, mb_releasegroupid)
     }
 
     companion object {
